@@ -1,0 +1,94 @@
+services:
+  db:
+    container_name: RA_POSTGRES
+    image: postgres:17
+    
+
+    environment:
+      POSTGRES_DB: ${PG_DB_NAME}
+      POSTGRES_USER: ${PG_DB_USER}
+      POSTGRES_PASSWORD: ${PG_DB_PASSWORD}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${PG_DB_USER} -d ${PG_DB_NAME}"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+    networks:
+      - backend
+
+  pgadmin:
+    container_name: RA_PGADMIN
+    image: dpage/pgadmin4
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL} 
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+
+    ports:
+      - "5050:80"
+
+    volumes:
+      - pg_admin_data:/var/lib/pgadmin
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - backend
+
+  qdrant:
+    container_name: RESUME_QDRANT
+    image: qdrant/qdrant:latest
+    ports: 
+      - "6333:6333" 
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+    networks:
+      - backend
+
+  minio:
+    image: minio/minio:latest
+    container_name: RESUME_MINIO
+    command: server --console-address ":9001" /data
+    ports:
+      - "9000:9000" 
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+  pg_admin_data:
+  qdrant_data:
+  minio_data:
+
+
+networks:
+  backend:
+    driver: bridge
