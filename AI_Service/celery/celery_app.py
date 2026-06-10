@@ -1,5 +1,5 @@
 from celery import Celery
-from backend.core.config import settings
+from core.config import settings
 
 app = Celery(
     "RA",

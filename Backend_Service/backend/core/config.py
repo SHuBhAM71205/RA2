@@ -89,8 +89,7 @@ class Settings(BaseSettings):
         return self.RESUME_MAX_FILE_SIZE_MB * 1024 * 1024
     
     
-    
-    model_config = SettingsConfigDict(env_file=".env",extra="ignore")
+      
 
 
 settings = Settings() #type:ignore

@@ -113,7 +113,7 @@ services:
     container_name: RA_CELERY_WORKER
 
     build:
-      context: .
+      context: ./AI_Service
       dockerfile: Dockerfile
 
     restart: unless-stopped
