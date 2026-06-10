@@ -1,4 +1,4 @@
-from fastapi import (UploadFile,BackgroundTasks, HTTPException, status)
+from fastapi import (UploadFile,HTTPException, status)
 from fastapi.responses import (StreamingResponse)
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -132,7 +132,6 @@ class ResumeController:
         db: AsyncSession,
         user_id: UUID,
         file: UploadFile,
-        background_task: BackgroundTasks
     ):
         try:
             resume = await resume_services.upload_resume(db, user_id, file)
@@ -171,7 +170,7 @@ class ResumeController:
                     detail="You can only access your own resume"
                 )
 
-            return {"message": "Resume analysis completed"}
+            return {"message": "Wait for some time Resume analysis started"}
 
         except ValueError as e:
             raise HTTPException(
@@ -192,7 +191,7 @@ class ResumeController:
         db: AsyncSession,
         user_id: UUID,
         file: UploadFile,
-        background_task: BackgroundTasks,
+
         resume_id: UUID
     ):
         try:
@@ -202,6 +201,7 @@ class ResumeController:
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You can only update your own resume"
                 )
+                
             return {
                 "message": "Resume updated successfully",
                 "resume_id": resume.id,

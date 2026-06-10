@@ -103,6 +103,9 @@ class ResumeServices:
 
         return resume
 
+    async def _resume_analize_bt():
+        pass
+    
     async def analyze_resume(
         self,
         db: AsyncSession,
@@ -116,7 +119,9 @@ class ResumeServices:
 
         if not resume:
             raise ValueError("Resume not found")
-
+        
+        
+        
         resume.status = "analyzed"
         db.add(resume)
         await db.commit()

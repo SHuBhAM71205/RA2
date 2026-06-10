@@ -17,7 +17,7 @@ from backend.db.models.Base import Base
 
 
 class Analysis(Base):
-    __tablename__ = "analyses"
+    __tablename__ = "analysis"
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), 

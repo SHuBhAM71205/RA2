@@ -19,12 +19,7 @@ class Settings(BaseSettings):
     @computed_field
     def ALEMBIC_POSTGRES_URL(self) -> str:
         return f"postgresql+psycopg://{self.PG_DB_USER}:{self.PG_DB_PASSWORD}@{self.PG_DB_HOST}:{self.PG_DB_PORT}/{self.PG_DB_NAME}"
-    
-    #PG_ADMIN
-    
-    # PGADMIN_EMAIL: str
-    # PGADMIN_PASSWORD: str
-    
+
     # --- MINIO ---
     MINIO_CLIENT_PORT: int 
     MINIO_UI_PORT: int 
@@ -47,6 +42,26 @@ class Settings(BaseSettings):
     @computed_field
     def QDRANT_URL(self) -> str:
         return f"http://{self.QDRANT_HOST}:{self.QDRANT_PORT}"
+    
+    # ---------CELERY--------------
+    
+    CELERY_REDIS_LOGICAL_DB:int
+    CELERY_BROKER:str
+    CELERY_BROKER_HOST:str
+    CELERY_BROKER_PORT:str
+    
+    @computed_field
+    def CELERY_BROKER_URL(self) -> str:
+        return f"{self.CELERY_BROKER}://{self.CELERY_BROKER_HOST}:{self.CELERY_BROKER_PORT}/{self.CELERY_REDIS_LOGICAL_DB}"
+    
+    CELERY_BACKEND:str
+    CELERY_BACKEND_HOST:str
+    CELERY_BACKEND_PORT:str
+
+    
+    @computed_field
+    def CELERY_BACKEND_URL(self) -> str:
+        return f"{self.CELERY_BACKEND}://{self.CELERY_BACKEND_HOST}:{self.CELERY_BACKEND_PORT}/{self.CELERY_REDIS_LOGICAL_DB}"
     
     
     # CRYPTOGRAPHIC

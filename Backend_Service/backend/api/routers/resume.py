@@ -6,7 +6,6 @@ from fastapi import (
     Request,
     status,
     HTTPException,
-    BackgroundTasks,
     UploadFile
 )
 
@@ -154,14 +153,13 @@ async def get_resume(
 async def resume_upload_user(
     user_id: UUID,
     file: UploadFile,
-    background_task: BackgroundTasks,
+
     db: AsyncDB,
 ):
     return await resume_controller.resume_upload_controller(
         db=db,
         user_id=user_id,
         file=file,
-        background_task=background_task
     )
 
 
@@ -177,13 +175,15 @@ async def resume_upload_user(
 async def resume_analyze(
     request: Request,
     resume_id: UUID,
+
     db: AsyncDB
 ):
     
     return await resume_controller.analize_resume_controller(
         db=db,
         user_id=request.state.user_id,
-        resume_id=resume_id
+        resume_id=resume_id,
+
     )
 
 
@@ -200,7 +200,7 @@ async def resume_update(
     request:Request,
     resume_id: UUID,
     file: UploadFile,
-    background_task: BackgroundTasks,
+
     db: AsyncDB,
 ):
     
@@ -208,6 +208,5 @@ async def resume_update(
         db=db,
         user_id=request.state.user_id,
         file=file,
-        background_task=background_task,
         resume_id=resume_id
     )
