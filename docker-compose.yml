@@ -116,14 +116,12 @@ services:
       context: ./AI_Service
       dockerfile: Dockerfile
 
-    restart: unless-stopped
-
     env_file:
       - .env
 
     command: >
       celery
-      -A backend.celery.celery_app
+      -A workers.celery_app
       worker
       --loglevel=info
 

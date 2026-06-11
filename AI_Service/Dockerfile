@@ -2,12 +2,11 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock ./
-RUN pip install --no-cache-dir pip --upgrade
-RUN pip install --no-cache-dir .
-
 COPY . .
 
-ENV PYTHONPATH=/app
+RUN pip install --no-cache-dir uv && \
+    uv pip install --system -r pyproject.toml
 
-CMD ["celery", "-A", "celery_app", "worker", "--loglevel=info"]
+# ENV PYTHONPATH=/app
+
+CMD ["celery", "-A", "workers" , "celery_app" , "--loglevel=info"]
