@@ -1,17 +1,17 @@
 import io
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
-from typing import List, Tuple, Union, Sequence
+from typing import List, Tuple, Union, Sequence, Optional
 from uuid import UUID, uuid4
 from enum import Enum
 
 from fastapi import UploadFile
 
 from backend.core.config import settings
-# database models
-from backend.db.models.Resume import Resume
-
 from backend.minio.session import Minio_client
+from backend.celery.celery_app import backend_celery_app
+from backend.db.models.Resume import Resume
+from backend.db.models.Analysis import Analysis
 
 class ResumeLookupField(str, Enum):
     USER_ID = "user_id" 
@@ -120,14 +120,79 @@ class ResumeServices:
         if not resume:
             raise ValueError("Resume not found")
         
-        
-        
-        resume.status = "analyzed"
+        # Set status to processing while the Celery worker runs
+        resume.status = "processing"
         db.add(resume)
         await db.commit()
         await db.refresh(resume)
 
+        # Dispatch task to AI service container using task name signature (decoupled)
+        backend_celery_app.send_task(
+            "tasks.resume.analyze",
+            args=[{
+                "resume_id": str(resume.id),
+                "user_id": str(resume.user_id),
+                "minio_object_name": resume.minio_object_name
+            }]
+        )
+
         return resume
+
+    async def get_resume_analysis(
+        self,
+        db: AsyncSession,
+        resume_id: UUID,
+    ) -> Optional[Analysis]:
+        stmt = select(Analysis).where(Analysis.resume_id == resume_id)
+        result = await db.execute(stmt)
+        return result.scalars().first()
+
+    async def save_resume_analysis(
+        self,
+        db: AsyncSession,
+        resume_id: UUID,
+        status: str,
+        match_score: int = 0,
+        raw_ai_output: dict = {},
+        prompt_tokens: int = 0,
+        completion_tokens: int = 0,
+        total_tokens: int = 0,
+    ) -> None:
+        resumes = await self.get_resume(
+            db,
+            [(ResumeLookupField.RESUME_ID, resume_id)]
+        )
+        resume = next(iter(resumes), None)
+        if not resume:
+            raise ValueError("Resume not found")
+
+        resume.status = status
+        db.add(resume)
+
+        if status == "analyzed":
+            stmt = select(Analysis).where(Analysis.resume_id == resume_id)
+            result = await db.execute(stmt)
+            existing = result.scalars().first()
+
+            if existing:
+                existing.match_score = match_score
+                existing.raw_ai_output = raw_ai_output
+                existing.prompt_tokens = prompt_tokens
+                existing.completion_tokens = completion_tokens
+                existing.total_tokens = total_tokens
+                db.add(existing)
+            else:
+                analysis = Analysis(
+                    resume_id=resume_id,
+                    match_score=match_score,
+                    raw_ai_output=raw_ai_output,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    total_tokens=total_tokens,
+                )
+                db.add(analysis)
+
+        await db.commit()
 
     async def update_resume(
         self,

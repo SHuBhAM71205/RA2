@@ -31,6 +31,7 @@ from backend.api.models.resume_model import(
     ResumeMutationResponse,
     ResumeResponse,
     ResumeStatusResponse,
+    AnalysisResponse,
 )
 
 
@@ -208,5 +209,21 @@ async def resume_update(
         db=db,
         user_id=request.state.user_id,
         file=file,
+        resume_id=resume_id
+    )
+
+
+@router.get(
+    "/analysis/{resume_id}",
+    response_model=AnalysisResponse
+)
+async def get_resume_analysis(
+    request: Request,
+    resume_id: UUID,
+    db: AsyncDB
+):
+    return await resume_controller.get_resume_analysis_controller(
+        db=db,
+        user_id=request.state.user_id,
         resume_id=resume_id
     )

@@ -229,3 +229,43 @@ class ResumeController:
                 detail="Internal server error"
             )
 
+    async def get_resume_analysis_controller(
+        self,
+        db: AsyncSession,
+        user_id: Union[str, int, UUID],
+        resume_id: UUID
+    ):
+        try:
+            resumes = await resume_services.get_resume(
+                db,
+                [(rs.ResumeLookupField.RESUME_ID, resume_id)]
+            )
+            resume = next(iter(resumes), None)
+
+            if not resume:
+                raise HTTPException(status_code=404, detail="Resume not found")
+
+            if not self._is_owner(resume, user_id):
+                raise HTTPException(
+                    status_code=403,
+                    detail="You can only access your own resume analysis"
+                )
+
+            analysis = await resume_services.get_resume_analysis(db, resume_id)
+            if not analysis:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Analysis not found or still processing"
+                )
+
+            return analysis
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            print(f"Get analysis error: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal server error"
+            )
+

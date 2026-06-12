@@ -2,16 +2,14 @@ from celery import Celery
 from core.config import settings
 
 app = Celery(
-    "RA ",
+    "ai_worker",
     broker=settings.CELERY_BROKER_URL,
     backend=settings.CELERY_BACKEND_URL,
 )
 
-print(app.conf.broker_url)
-print(app.conf.result_backend)
+app.autodiscover_tasks(["workers"])
 
-
-
-print(settings.A_CELERY_BROKER)
-print(settings.CELERY_BROKER_URL)
-print(type(settings.CELERY_BROKER_URL))
+# Explicitly import the tasks to ensure they are registered with Celery
+app.conf.imports = (
+    "workers.tasks.resume_analyse",
+)

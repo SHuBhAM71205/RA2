@@ -119,6 +119,12 @@ services:
     env_file:
       - .env
 
+    environment:
+      - QDRANT_HOST=qdrant
+      - MINIO_HOST=minio
+      - A_CELERY_BROKER_HOST=redis
+      - A_CELERY_BACKEND_HOST=redis
+
     command: >
       celery
       -A workers.celery_app
@@ -135,8 +141,17 @@ services:
     networks:
       - backend
 
-
-
+  frontend:
+    container_name: RA_FRONTEND
+    build:
+      context: ./Frontend_Service
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:8000
+    ports:
+      - "3000:80"
+    networks:
+      - backend
 
 volumes:
   postgres_data:

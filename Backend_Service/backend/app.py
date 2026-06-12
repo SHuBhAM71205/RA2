@@ -1,14 +1,19 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.core.config import settings
+from backend.qudrant.session import ensure_qdrant_collections
+from backend.minio.session import ensure_minio_bucket
 
 # router
-from backend.api.routers import (auth,resume)
+from backend.api.routers import (auth, resume, internal)
 
-#middleware
-
-
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    ensure_qdrant_collections()
+    ensure_minio_bucket()
+    yield
 
 #constants
 origin = [
@@ -18,7 +23,7 @@ origin = [
 
 
 #fastapi app
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 
 #CROS Setup
@@ -40,3 +45,4 @@ def root():
 # add_router
 app.include_router(auth.router)
 app.include_router(resume.router)
+app.include_router(internal.router)

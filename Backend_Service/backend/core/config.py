@@ -1,6 +1,12 @@
-from pydantic_settings import BaseSettings,SettingsConfigDict
-
+import os
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import computed_field
+
+# Load root .env file
+dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.env"))
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
 
 class Settings(BaseSettings):
     
@@ -45,19 +51,18 @@ class Settings(BaseSettings):
     
     # ---------CELERY--------------
     
-    CELERY_REDIS_LOGICAL_DB:int
-    CELERY_BROKER:str
-    CELERY_BROKER_HOST:str
-    CELERY_BROKER_PORT:str
+    CELERY_REDIS_LOGICAL_DB: int = 0
+    CELERY_BROKER: str = "redis"
+    CELERY_BROKER_HOST: str = "localhost"
+    CELERY_BROKER_PORT: str = "6379"
     
     @computed_field
     def CELERY_BROKER_URL(self) -> str:
         return f"{self.CELERY_BROKER}://{self.CELERY_BROKER_HOST}:{self.CELERY_BROKER_PORT}/{self.CELERY_REDIS_LOGICAL_DB}"
     
-    CELERY_BACKEND:str
-    CELERY_BACKEND_HOST:str
-    CELERY_BACKEND_PORT:str
-
+    CELERY_BACKEND: str = "redis"
+    CELERY_BACKEND_HOST: str = "localhost"
+    CELERY_BACKEND_PORT: str = "6379"
     
     @computed_field
     def CELERY_BACKEND_URL(self) -> str:

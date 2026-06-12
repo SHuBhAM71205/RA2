@@ -27,3 +27,26 @@ class ResumeStatusResponse(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     message: str
+
+
+class AnalysisResponse(BaseModel):
+    id: UUID
+    resume_id: UUID
+    match_score: int
+    raw_ai_output: dict
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+
+    class Config:
+        from_attributes = True
+
+
+class AnalysisCallbackRequest(BaseModel):
+    resume_id: UUID
+    status: str
+    match_score: int = 0
+    raw_ai_output: dict = {}
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
