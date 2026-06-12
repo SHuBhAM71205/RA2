@@ -49,16 +49,26 @@ class Settings(BaseSettings):
     def QDRANT_URL(self) -> str:
         return f"http://{self.QDRANT_HOST}:{self.QDRANT_PORT}"
     
-    # ---------CELERY--------------
-    
-    CELERY_REDIS_LOGICAL_DB: int = 0
-    CELERY_BROKER: str = "redis"
-    CELERY_BROKER_HOST: str = "localhost"
-    CELERY_BROKER_PORT: str = "6379"
+    # ---------REDIS(GENERAL)--------------
+
+    GEN_REDIS_HOST:str
+    GEN_REDIS_PORT:int
+    GEN_REDIS_LOGICAL_DB:int
     
     @computed_field
-    def CELERY_BROKER_URL(self) -> str:
-        return f"{self.CELERY_BROKER}://{self.CELERY_BROKER_HOST}:{self.CELERY_BROKER_PORT}/{self.CELERY_REDIS_LOGICAL_DB}"
+    def GEN_REDIS_URL(self) -> str:
+        return f"redis://{self.GEN_REDIS_HOST}:{self.GEN_REDIS_PORT}/{self.GEN_REDIS_LOGICAL_DB}"
+
+    # ---------CELERY--------------
+    
+    A_CELERY_REDIS_LOGICAL_DB: int = 0
+    A_CELERY_BROKER: str = "redis"
+    A_CELERY_BROKER_HOST: str = "localhost"
+    A_CELERY_BROKER_PORT: str = "6379"
+    
+    @computed_field
+    def A_CELERY_BROKER_URL(self) -> str:
+        return f"{self.A_CELERY_BROKER}://{self.A_CELERY_BROKER_HOST}:{self.A_CELERY_BROKER_PORT}/{self.A_CELERY_REDIS_LOGICAL_DB}"
     
     CELERY_BACKEND: str = "redis"
     CELERY_BACKEND_HOST: str = "localhost"
@@ -66,7 +76,7 @@ class Settings(BaseSettings):
     
     @computed_field
     def CELERY_BACKEND_URL(self) -> str:
-        return f"{self.CELERY_BACKEND}://{self.CELERY_BACKEND_HOST}:{self.CELERY_BACKEND_PORT}/{self.CELERY_REDIS_LOGICAL_DB}"
+        return f"{self.CELERY_BACKEND}://{self.CELERY_BACKEND_HOST}:{self.CELERY_BACKEND_PORT}/{self.A_CELERY_REDIS_LOGICAL_DB}"
     
     
     # CRYPTOGRAPHIC
@@ -80,7 +90,9 @@ class Settings(BaseSettings):
     
     @computed_field
     def REACT_APP_FRONTEND_URL(self) -> str:
-        return f"http://{self.REACT_APP_FRONTEND_HOST}:{self.REACT_APP_FRONTEND_PORT}"
+        return f"http://{self.REACT_APP_FRONTEND_HOST}"
+    # def REACT_APP_FRONTEND_URL(self) -> str:
+    #     return f"http://{self.REACT_APP_FRONTEND_HOST}:{self.REACT_APP_FRONTEND_PORT}"
     
     
     #LIMITS

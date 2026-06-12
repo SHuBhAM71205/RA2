@@ -3,7 +3,7 @@ from core.config import settings
 
 app = Celery(
     "ai_worker",
-    broker=settings.CELERY_BROKER_URL,
+    broker=settings.A_CELERY_BROKER_URL,
     backend=settings.CELERY_BACKEND_URL,
 )
 

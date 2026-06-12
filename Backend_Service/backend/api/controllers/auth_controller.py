@@ -117,7 +117,24 @@ class AuthController:
     ) -> auth_model.UserProfileResponse:
         
         try:
-            user = await user_services.find_user_by(key_value=[(us.UserLookupField.ID,req.state.user_id)],db=db)
+            from uuid import UUID
+            from backend.api.middlewares.redis_cache import redis_profile_cache_get, redis_profile_cache_set
+
+            user_id_str = req.state.user_id
+            user_uuid = UUID(str(user_id_str))
+
+            # Check cache first
+            cached_profile = await redis_profile_cache_get(user_uuid)
+            if cached_profile:
+                return auth_model.UserProfileResponse(
+                    id=UUID(cached_profile["id"]),
+                    email=cached_profile["email"],
+                    username=cached_profile["username"],
+                    is_verified=cached_profile["is_verified"]
+                )
+
+            # Database lookup on cache miss
+            user = await user_services.find_user_by(key_value=[(us.UserLookupField.ID, user_uuid)], db=db)
             
             if not user:
                 raise HTTPException(
@@ -125,11 +142,21 @@ class AuthController:
                     detail="User not found"
                 )
             
+            profile_data = {
+                "id": str(user.id),
+                "email": user.email,
+                "username": user.name,
+                "is_verified": user.is_verified
+            }
+
+            # Cache the user profile
+            await redis_profile_cache_set(user_uuid, profile_data)
+
             return auth_model.UserProfileResponse(
-                id = user.id,
+                id=user.id,
                 email=user.email,
-                username= user.name,
-                is_verified = user.is_verified
+                username=user.name,
+                is_verified=user.is_verified
             )
         except HTTPException:
             raise
@@ -194,6 +221,7 @@ class AuthController:
         user_id = payload.get("sub")
     
         try:
+            from backend.api.middlewares.redis_cache import redis_cache_invalidate
             
             db_tokens = await auth_services.get_unrevoked_token(user_id=user_id,db=db)
             
@@ -211,6 +239,9 @@ class AuthController:
                 
             target_token.is_revoked = True
             await db.commit()
+            
+            # Invalidate user profile cache on logout
+            await redis_cache_invalidate(f"profile_cache:{user_id}")
             
             return {"detail": "Successfully logged out and session revoked."}
             

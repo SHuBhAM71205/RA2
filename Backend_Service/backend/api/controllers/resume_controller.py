@@ -88,6 +88,15 @@ class ResumeController:
     ):
         
         try:
+            from backend.api.middlewares.redis_cache import redis_resume_cache_get, redis_resume_cache_set
+            
+            user_uuid = UUID(str(user_id))
+            
+            # Check Redis cache first
+            cached_resume = await redis_resume_cache_get(user_uuid)
+            if cached_resume:
+                return StreamingResponse(iter([cached_resume]), media_type="application/pdf")
+
             if resume_id:
                 resumes = await resume_services.get_resume(
                     db,
@@ -97,14 +106,14 @@ class ResumeController:
             else:
                 resumes = await resume_services.get_resume(
                     db,
-                    [(rs.ResumeLookupField.USER_ID, user_id)]
+                    [(rs.ResumeLookupField.USER_ID, user_uuid)]
                 )
                 resume = next(iter(resumes), None)
 
             if not resume:
                 raise HTTPException(status_code=404, detail="Resume not found")
 
-            if not self._is_owner(resume, user_id):
+            if not self._is_owner(resume, user_uuid):
                 raise HTTPException(
                     status_code=403, detail="You can only access your own resume")
 
@@ -114,6 +123,9 @@ class ResumeController:
                 raise HTTPException(
                     status_code=404, detail="Resume not found"
                 )
+            
+            # Save to Redis cache
+            await redis_resume_cache_set(user_uuid, resume_file)
             
             return StreamingResponse(iter([resume_file]), media_type="application/pdf")
 
@@ -134,7 +146,13 @@ class ResumeController:
         file: UploadFile,
     ):
         try:
+            from backend.api.middlewares.redis_cache import redis_cache_invalidate
+            
             resume = await resume_services.upload_resume(db, user_id, file)
+            
+            # Invalidate cache
+            await redis_cache_invalidate(f"resume_cache:{user_id}")
+            
             return {
                 "message": "Resume uploaded successfully",
                 "resume_id": resume.id,
@@ -195,12 +213,17 @@ class ResumeController:
         resume_id: UUID
     ):
         try:
+            from backend.api.middlewares.redis_cache import redis_cache_invalidate
+            
             resume = await resume_services.update_resume(db, user_id, resume_id, file)
             if not self._is_owner(resume, user_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You can only update your own resume"
                 )
+            
+            # Invalidate cache
+            await redis_cache_invalidate(f"resume_cache:{user_id}")
                 
             return {
                 "message": "Resume updated successfully",

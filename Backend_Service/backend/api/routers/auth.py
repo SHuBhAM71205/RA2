@@ -12,6 +12,7 @@ from typing import Annotated
 from backend.api.models import (auth_model)
 # import middleware
 from backend.api.middlewares import (jwt)
+from backend.api.middlewares.limiter import auth_rate_limiter
 # import controller
 from backend.api.controllers.auth_controller import (AuthController)
 
@@ -32,7 +33,8 @@ auth_controller = AuthController()
 
 @router.post(
     "/login",
-    response_model=auth_model.LoginResponse
+    response_model=auth_model.LoginResponse,
+    dependencies=[Depends(auth_rate_limiter)]
 )
 async def login(req: auth_model.LoginRequest, db: AsyncDB):
     return await auth_controller.login_controller(req=req, db=db)
@@ -40,7 +42,8 @@ async def login(req: auth_model.LoginRequest, db: AsyncDB):
 
 @router.post(
     "/register",
-    response_model=auth_model.RegisterResponse
+    response_model=auth_model.RegisterResponse,
+    dependencies=[Depends(auth_rate_limiter)]
 )
 async def register(req: auth_model.RegisterRequest, db: AsyncDB):
     return await auth_controller.register_controller(req=req,db=db)

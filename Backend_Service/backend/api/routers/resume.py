@@ -14,6 +14,7 @@ from typing import Annotated,List
 
 #middleware
 from backend.api.middlewares import (jwt)
+from backend.api.middlewares.limiter import resume_rate_limiter
 
 #Services import
 from backend.api.services.auth_services import AuthServices
@@ -145,6 +146,7 @@ async def get_resume(
 @router.post(
     "/upload/{user_id}",
     response_model=ResumeMutationResponse,
+    dependencies=[Depends(resume_rate_limiter)],
     responses={
         200: {"description": "Resume uploaded successfully"},
         400: {"description": "Invalid file type"},
@@ -191,6 +193,7 @@ async def resume_analyze(
 @router.put(
     "/update/{resume_id}",
     response_model=ResumeMutationResponse,
+    dependencies=[Depends(resume_rate_limiter)],
     responses={
         200: {"description": "Resume updated successfully"},
         400: {"description": "Invalid file type"},

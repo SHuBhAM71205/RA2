@@ -9,7 +9,6 @@ dependencies = [
     "pydantic>=2.13.4",
     "pydantic-settings>=2.14.1",
     "pypdf>=4.0.0",
-    "sentence-transformers>=2.2.0",
     "qdrant-client>=1.18.0",
     "minio>=7.2.0",
     "requests>=2.31.0",

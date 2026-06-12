@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 class HuggingFaceService:
     def __init__(self):
-        self.token = settings.HF_ACCESS_TOKEN or os.environ.get("HF_TOKEN") or os.environ.get("HF_ACCESS_TOKEN")
-        self.headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+        self.token = settings.HF_ACCESS_TOKEN
+        self.headers = {'Content-Type': 'application/json',"Authorization": f"Bearer {self.token}"}
         self.model_name = settings.HF_MODEL_NAME
         self.embedding_url = settings.HUGGING_FACE_ACCESS_URL
 
@@ -20,10 +20,10 @@ class HuggingFaceService:
         if self.embedding_url:
             try:
                 logger.info(f"Calling online Hugging Face embedding API: {self.embedding_url}")
-                headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+
                 response = requests.post(
                     self.embedding_url,
-                    headers=headers,
+                    headers=self.headers,
                     json={"inputs": text},
                     timeout=15
                 )
@@ -49,19 +49,8 @@ class HuggingFaceService:
             except Exception as e:
                 logger.warning(f"HF Embedding API failed: {e}. Falling back to local model.")
 
-        logger.info("Falling back to local sentence-transformers model (CPU)")
-        try:
-            from sentence_transformers import SentenceTransformer
-            global _local_embedding_model
-            if '_local_embedding_model' not in globals():
-                _local_embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
-            
-            vector = _local_embedding_model.encode(text).tolist()
-            return vector
-        except Exception as e:
-            logger.error(f"Local sentence-transformers embedding generation failed: {e}")
-            raise ValueError(f"Failed to generate embedding: {e}")
-
+        # logger.info("Falling back to local sentence-transformers model (CPU)")
+        
     def _pool_embedding(self, data) -> list:
         """
         Pools Hugging Face feature extraction output to a 1D vector of floats.
