@@ -46,10 +46,12 @@ export default function Dashboard({ token, userId, onSelectResume }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = resp.data || [];
-      setResumes(data);
+      // Filter out failed resumes
+      const activeData = data.filter(r => r.status !== 'failed');
+      setResumes(activeData);
 
       // Proactively fetch analysis details for analyzed resumes to cache scores
-      const analyzed = data.filter(r => r.status === 'analyzed');
+      const analyzed = activeData.filter(r => r.status === 'analyzed');
       const analysisCache = { ...analyses };
       let hasNew = false;
 
@@ -86,7 +88,7 @@ export default function Dashboard({ token, userId, onSelectResume }) {
   // Poll active statuses
   useEffect(() => {
     const activeResumes = resumes.filter(
-      r => r.status === 'processing' || r.status === 'uploaded' || r.status === 'updated'
+      r => r.status === 'processing'
     );
     if (activeResumes.length === 0) return;
 
@@ -97,24 +99,31 @@ export default function Dashboard({ token, userId, onSelectResume }) {
 
       for (let i = 0; i < copy.length; i++) {
         const resume = copy[i];
-        if (resume.status === 'processing' || resume.status === 'uploaded' || resume.status === 'updated') {
+        if (resume.status === 'processing') {
           try {
             const resp = await axios.get(`${API_URL}/resume/status/${resume.id}`, {
               headers: { Authorization: `Bearer ${token}` }
             });
             if (resp.data.status !== resume.status) {
-              copy[i].status = resp.data.status;
-              updated = true;
+              if (resp.data.status === 'failed') {
+                // Remove failed resume from the dashboard lists
+                copy.splice(i, 1);
+                i--;
+                updated = true;
+              } else {
+                copy[i].status = resp.data.status;
+                updated = true;
 
-              // If status transitioned to analyzed, load analysis details immediately
-              if (resp.data.status === 'analyzed') {
-                try {
-                  const analResp = await axios.get(`${API_URL}/resume/analysis/${resume.id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                  });
-                  analysisCache[resume.id] = analResp.data;
-                } catch (err) {
-                  console.error('Failed to load analysis on transition:', err);
+                // If status transitioned to analyzed, load analysis details immediately
+                if (resp.data.status === 'analyzed') {
+                  try {
+                    const analResp = await axios.get(`${API_URL}/resume/analysis/${resume.id}`, {
+                      headers: { Authorization: `Bearer ${token}` }
+                    });
+                    analysisCache[resume.id] = analResp.data;
+                  } catch (err) {
+                    console.error('Failed to load analysis on transition:', err);
+                  }
                 }
               }
             }

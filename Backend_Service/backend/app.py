@@ -9,7 +9,7 @@ from backend.core.reddis import close_redis_client
 from backend.api.middlewares.limiter import global_rate_limit_middleware
 
 # router
-from backend.api.routers import (auth, resume, internal)
+from backend.api.routers import (auth, resume, internal, jobs)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,6 +33,7 @@ app = FastAPI(lifespan=lifespan)
 # Register Global Rate Limiting Middleware
 app.middleware("http")(global_rate_limit_middleware)
 
+print(origin)
 #CROS Setup
 app.add_middleware(
     CORSMiddleware,
@@ -53,3 +54,4 @@ def root():
 app.include_router(auth.router)
 app.include_router(resume.router)
 app.include_router(internal.router)
+app.include_router(jobs.router)

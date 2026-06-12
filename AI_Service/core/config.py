@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     QDRANT_HOST: str
     QDRANT_PORT: int
     QDRANT_RESUME_COLLECTION: str = "resumes"
+    QDRANT_JOB_COLLECTION: str = "jobs"
     
     @computed_field
     def QDRANT_URL(self) -> str:
@@ -54,6 +55,10 @@ class Settings(BaseSettings):
     
     # ---------BACKEND CALLBACK API--------------
     BACKEND_INTERNAL_URL: str = "http://host.docker.internal:8000"
+
+    # ---------RAPIDAPI (JSEARCH)--------------
+    RAPIDAPI_KEY: str = ""
+    RAPIDAPI_HOST: str = "jsearch.p.rapidapi.com"
 
     model_config = SettingsConfigDict(env_file=".env",extra="ignore")
 

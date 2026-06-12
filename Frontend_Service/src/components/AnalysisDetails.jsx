@@ -286,11 +286,30 @@ export default function AnalysisDetails({ token, resumeId, onBack }) {
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 rounded-full" />
             )}
           </button>
+
+          <button
+            onClick={() => setActiveSubTab('jobs')}
+            className={`pb-2.5 px-3 text-xs font-bold transition-all relative focus:outline-none cursor-pointer ${
+              activeSubTab === 'jobs' ? 'text-indigo-600' : 'text-slate-450 hover:text-slate-700'
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> Matching Jobs
+            </span>
+            {activeSubTab === 'jobs' && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 rounded-full" />
+            )}
+          </button>
         </div>
 
         {/* Tab Detail Pane */}
         <div className="flex-grow mt-6 overflow-y-auto bg-white border border-slate-200 rounded-2xl p-6 shadow-sm min-h-0">
           
+          {/* Tab: Jobs */}
+          {activeSubTab === 'jobs' && (
+            <JobsTab token={token} resumeId={resumeId} />
+          )}
+
           {/* Tab: Overview */}
           {activeSubTab === 'overview' && (
             <div className="space-y-4 animate-fade-in">
@@ -389,6 +408,145 @@ export default function AnalysisDetails({ token, resumeId, onBack }) {
           )}
 
         </div>
+      </div>
+    </div>
+  );
+}
+
+function JobsTab({ token, resumeId }) {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    const fetchJobs = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const resp = await axios.get(`${API_URL}/resume/${resumeId}/jobs`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (active) {
+          setJobs(resp.data || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch matching jobs:', err);
+        if (active) {
+          setError(getErrorMessage(err, 'Failed to fetch matching jobs.'));
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchJobs();
+    return () => {
+      active = false;
+    };
+  }, [resumeId, token]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-2 animate-pulse">
+        <RefreshCw className="w-5 h-5 animate-spin text-indigo-500" />
+        <p className="text-xs text-slate-500 font-medium">Searching vector database for matching jobs...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-3 rounded-xl flex items-center gap-2">
+        <ShieldAlert className="w-4 h-4 shrink-0 text-red-650" />
+        <span>{error}</span>
+      </div>
+    );
+  }
+
+  if (jobs.length === 0) {
+    return (
+      <div className="text-center py-12 space-y-4">
+        <div className="w-14 h-14 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center mx-auto text-slate-450 shadow-inner">
+          <BookOpen className="w-6 h-6" />
+        </div>
+        <div className="space-y-1">
+          <h4 className="text-sm font-bold text-slate-800">No Matching Jobs Found</h4>
+          <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+            There are no jobs matching your profile in Qdrant right now. Make sure the daily morning fetcher has populated jobs, or trigger it via the API.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5 animate-fade-in">
+      <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-450">
+          Semantic Job Matches (India)
+        </h4>
+        <span className="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full border border-indigo-100">
+          Top {jobs.length} Matches
+        </span>
+      </div>
+
+      <div className="space-y-3">
+        {jobs.map((job) => (
+          <div 
+            key={job.job_id}
+            className="border border-slate-200 rounded-2xl p-5 hover:bg-slate-50/50 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-sm"
+          >
+            <div className="flex items-start gap-4">
+              {job.employer_logo ? (
+                <img 
+                  src={job.employer_logo} 
+                  alt={job.employer_name}
+                  className="w-11 h-11 object-contain rounded-xl border border-slate-150 bg-white shrink-0 p-1"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ) : (
+                <div className="w-11 h-11 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 shrink-0 font-bold text-xs uppercase shadow-sm">
+                  {job.employer_name?.substring(0, 2)}
+                </div>
+              )}
+
+              <div className="space-y-1 min-w-0">
+                <h5 className="font-bold text-sm text-slate-900 truncate max-w-xs sm:max-w-md">
+                  {job.job_title}
+                </h5>
+                <p className="text-xs text-slate-655 font-medium">{job.employer_name}</p>
+                <div className="flex items-center gap-2.5 flex-wrap text-[10.5px] text-slate-500 pt-0.5">
+                  <span className="font-semibold">{job.location}</span>
+                  <span>•</span>
+                  <span className="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full font-bold uppercase text-[9px] tracking-wider border border-slate-200">
+                    {job.job_employment_type?.replace('_', ' ') || 'FULLTIME'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex sm:flex-col items-end gap-2 shrink-0 w-full sm:w-auto self-stretch sm:self-auto justify-between sm:justify-start pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-150 px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                <Sparkles className="w-3 h-3 text-emerald-500 animate-pulse" />
+                <span>{job.match_score}% Semantic Score</span>
+              </span>
+
+              {job.job_apply_link && (
+                <a
+                  href={job.job_apply_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors focus:outline-none shadow-sm shadow-indigo-100"
+                >
+                  Apply Now
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

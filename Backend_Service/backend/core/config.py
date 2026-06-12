@@ -6,7 +6,7 @@ from pydantic import computed_field
 # Load root .env file
 dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.env"))
 if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path)
+    load_dotenv(dotenv_path, override=True)
 
 class Settings(BaseSettings):
     
@@ -90,7 +90,7 @@ class Settings(BaseSettings):
     
     @computed_field
     def REACT_APP_FRONTEND_URL(self) -> str:
-        return f"http://{self.REACT_APP_FRONTEND_HOST}"
+        return f"{self.REACT_APP_FRONTEND_HOST}"
     # def REACT_APP_FRONTEND_URL(self) -> str:
     #     return f"http://{self.REACT_APP_FRONTEND_HOST}:{self.REACT_APP_FRONTEND_PORT}"
     
@@ -105,10 +105,10 @@ class Settings(BaseSettings):
     def RESUME_MAX_FILE_SIZE_BYTES(self) -> int:
         return self.RESUME_MAX_FILE_SIZE_MB * 1024 * 1024
     
-    
+    # ---------RAPIDAPI (JSEARCH)--------------
+    RAPIDAPI_KEY: str = ""
+    RAPIDAPI_HOST: str = "jsearch.p.rapidapi.com"
       
 
 
 settings = Settings() #type:ignore
-
-

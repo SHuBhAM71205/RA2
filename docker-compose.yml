@@ -141,6 +141,38 @@ services:
     networks:
       - backend
 
+  celery-beat:
+    container_name: RA_CELERY_BEAT
+
+    build:
+      context: ./AI_Service
+      dockerfile: Dockerfile
+
+    env_file:
+      - .env
+
+    environment:
+      - QDRANT_HOST=qdrant
+      - MINIO_HOST=minio
+      - A_CELERY_BROKER_HOST=redis
+      - A_CELERY_BACKEND_HOST=redis
+
+    command: >
+      celery
+      -A workers.celery_app
+      beat
+      --loglevel=info
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+      db:
+        condition: service_healthy
+
+    networks:
+      - backend
+
   frontend:
     container_name: RA_FRONTEND
     build:
