@@ -1,29 +1,18 @@
 version: '3.8'
 
 services:
-  app:
-    container_name: RA_APP
+  backend-monolith:
+    container_name: RA_BACKEND_MONOLITH
     build:
       context: .
-      dockerfile: Dockerfile.app
-    env_file:
-      - .env
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app:/app/Backend_Service:/app/AI_Service
-      # Connect locally as all services reside in this single container
-      - PG_DB_HOST=localhost
-      - QDRANT_HOST=localhost
-      - MINIO_HOST=localhost
-      - GEN_REDIS_HOST=localhost
-      - A_CELERY_BROKER_HOST=localhost
-      - A_CELERY_BACKEND_HOST=localhost
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
+      - "9000:9000" 
+      - "9001:9001" 
     volumes:
-      # Data persistence mount point for Postgres, Redis, Qdrant, MinIO
-      - app_data:/data
+      - shared_backend_data:/data
     restart: unless-stopped
 
 volumes:
-  app_data:
+  shared_backend_data:
