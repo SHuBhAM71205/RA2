@@ -1,0 +1,71 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+.hypothesis/
+
+# Virtual environments
+.venv
+.env.local
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Documentation
+docs/_build/
+site/
+
+# Misc
+.env.example
+README.md
+.gitignore
+
+# Frontend
+Frontend_Service/node_modules
+Frontend_Service/dist
+Frontend_Service/.vite
+
+# Docker files
+docker-compose.yml
+Docker/
+
+# Tests
+tests/
+test_*.py
+*_test.py

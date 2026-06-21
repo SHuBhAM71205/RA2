@@ -28,28 +28,6 @@ services:
     networks:
       - backend
 
-  pgadmin:
-    container_name: RA_PGADMIN
-    image: dpage/pgadmin4
-    restart: unless-stopped
-
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL} 
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
-
-    ports:
-      - "5050:80"
-
-    volumes:
-      - pg_admin_data:/var/lib/pgadmin
-
-    depends_on:
-      db:
-        condition: service_healthy
-
-    networks:
-      - backend
-
   qdrant:
     container_name: RA_QDRANT
     image: qdrant/qdrant:latest
