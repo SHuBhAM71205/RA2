@@ -4,7 +4,7 @@ emoji: 🚀
 colorFrom: blue
 colorTo: green
 sdk: docker
-app_file: docker-compose.yml 
+app_file: docker-compose.yml
 pinned: false
 ---
 

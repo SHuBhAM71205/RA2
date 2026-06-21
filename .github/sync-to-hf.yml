@@ -1,8 +1,8 @@
-
 name: Sync to Hugging Face Hub
 on:
   push:
-    branches: [main] 
+    branches: [main, master]
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -17,6 +17,6 @@ jobs:
         uses: huggingface/hub-sync@v0.1.0
         with:
           github_repo_id: ${{ github.repository }}
-          huggingface_repo_id: Shubham71205/RA2 
+          huggingface_repo_id: Shubham71205/RA2
           hf_token: ${{ secrets.HUGGINGFACEHUB_WRITE_TOKEN }}
           repo_type: space
