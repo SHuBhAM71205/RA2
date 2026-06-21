@@ -14,14 +14,14 @@ class Settings(BaseSettings):
     def CELERY_BROKER_URL(self) -> str:
         return f"{self.A_CELERY_BROKER}://{self.A_CELERY_BROKER_HOST}:{self.A_CELERY_BROKER_PORT}/{self.A_CELERY_REDIS_LOGICAL_DB}"
     
-    A_CELERY_BACKEND:str
-    A_CELERY_BACKEND_HOST:str
-    A_CELERY_BACKEND_PORT:str
+    CELERY_BACKEND:str
+    CELERY_BACKEND_HOST:str
+    CELERY_BACKEND_PORT:str
 
     
     @computed_field
     def CELERY_BACKEND_URL(self) -> str:
-        return f"{self.A_CELERY_BACKEND}://{self.A_CELERY_BACKEND_HOST}:{self.A_CELERY_BACKEND_PORT}/{self.A_CELERY_REDIS_LOGICAL_DB}"
+        return f"{self.CELERY_BACKEND}://{self.CELERY_BACKEND_HOST}:{self.CELERY_BACKEND_PORT}/{self.A_CELERY_REDIS_LOGICAL_DB}"
 
     # ---------QDRANT (Vector Database)--------------
     QDRANT_HOST: str

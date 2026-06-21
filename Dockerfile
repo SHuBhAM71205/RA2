@@ -69,7 +69,7 @@ RUN pip install --no-cache-dir \
 # Copy internal Python backend services
 COPY Backend_Service/ ./Backend_Service/
 COPY AI_Service/ ./AI_Service/
-COPY .env /app/
+# COPY .env /app/
 # Set up data directories with appropriate permissions
 RUN mkdir -p /data/postgres /data/redis /data/qdrant /data/minio /var/run/redis && \
     chown -R postgres:postgres /data/postgres && \
@@ -96,7 +96,7 @@ ENV A_CELERY_BROKER_HOST=localhost
 ENV A_CELERY_BACKEND_HOST=localhost
 
 # Expose FastAPI port (8000) and MinIO Console (9001) / S3 API (9000)
-EXPOSE 8000 9000 9001
+EXPOSE 7860 9000 9001
 
 # Boot everything via Supervisor
 CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

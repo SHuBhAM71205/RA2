@@ -9,3 +9,6 @@
 # Virtual environments
 *.venv
 *.env
+
+
+*upload_env_hf.py
