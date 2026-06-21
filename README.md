@@ -1,13 +1,12 @@
 ---
-title: Resume Analyzer
-emoji: 🚀
-colorFrom: blue
-colorTo: green
+title: RA2
+emoji: 👀
+colorFrom: gray
+colorTo: blue
 sdk: docker
-app_file: docker-compose.yml 
 pinned: false
+short_description: the resume analizer application
 ---
-
 # Resume Analyzer - Complete Setup Guide
 
 A production-ready resume analysis system combining FastAPI backend, AI services with embeddings, and vector search capabilities.
