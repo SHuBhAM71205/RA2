@@ -2,16 +2,12 @@
 FROM minio/minio:latest AS minio-src
 FROM qdrant/qdrant:latest AS qdrant-src
 
-# Stage 2: Final Monolithic Build
 FROM ubuntu:24.04
 
 LABEL maintainer="Monolith-Setup"
 
-# Prevent interactive prompts during apt install
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install PostgreSQL, Redis, Supervisor, Python, and base utilities
-# Inside Stage 2 of your Dockerfile, update the apt block to look like this:
 RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor \
     curl \
@@ -29,21 +25,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 
-# Copy MinIO and Qdrant binaries from Stage 1
 COPY --from=minio-src /usr/bin/minio /usr/bin/minio
 COPY --from=qdrant-src /qdrant/qdrant /usr/bin/qdrant
 
-# Set up project workspace
 WORKDIR /app
 
-# Setup Python Virtual Environment to avoid PEP 668 breaks
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Upgrade pip tools
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Install all Python dependencies
 RUN pip install --no-cache-dir \
     "alembic>=1.18.4" \
     "asyncio>=4.0.0" \
@@ -66,37 +57,43 @@ RUN pip install --no-cache-dir \
     "structlog>=25.5.0" \
     "uvicorn>=0.48.0"
 
-# Copy internal Python backend services
 COPY Backend_Service/ ./Backend_Service/
 COPY AI_Service/ ./AI_Service/
-# COPY .env /app/
-# Set up data directories with appropriate permissions
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+COPY .env /app/
+
 RUN mkdir -p /data/postgres /data/redis /data/qdrant /data/minio /var/run/redis && \
     chown -R postgres:postgres /data/postgres && \
     chown -R redis:redis /data/redis /var/run/redis && \
     chmod -R 777 /data
 
-# Initialize PostgreSQL database cluster
-RUN su postgres -c "/usr/lib/postgresql/16/bin/initdb -D /data/postgres -E UTF8" && \
+
+    RUN su postgres -c "/usr/lib/postgresql/16/bin/initdb -D /data/postgres -E UTF8" && \
     su postgres -c "/usr/lib/postgresql/16/bin/postgres -D /data/postgres -k /tmp -p 5432 &" && \
     sleep 4 && \
     su postgres -c "psql -h localhost -p 5432 -U postgres -c \"CREATE USER admin WITH PASSWORD 'secure_password';\"" && \
     su postgres -c "psql -h localhost -p 5432 -U postgres -c \"CREATE DATABASE resume_db OWNER admin;\"" && \
     su postgres -c "/usr/lib/postgresql/16/bin/pg_ctl -D /data/postgres -m immediate stop"
 
-# Copy supervisor master configuration file
+
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
-# Environment Variables pointing internally to localhost inside the same container
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app:/app/Backend_Service:/app/AI_Service
-ENV QDRANT_HOST=localhost
-ENV MINIO_HOST=localhost
-ENV A_CELERY_BROKER_HOST=localhost
-ENV A_CELERY_BACKEND_HOST=localhost
+ENV PG_DB_HOST=127.0.0.1
+ENV PG_DB_PORT=5432
+ENV MINIO_HOST=127.0.0.1
+ENV QDRANT_HOST=127.0.0.1
+ENV GEN_REDIS_HOST=127.0.0.1
+ENV A_CELERY_BROKER_HOST=127.0.0.1
+ENV A_CELERY_BACKEND_HOST=127.0.0.1
+ENV REACT_APP_FRONTEND_HOST=http://127.0.0.1
 
 # Expose FastAPI port (8000) and MinIO Console (9001) / S3 API (9000)
 EXPOSE 7860 9000 9001
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 # Boot everything via Supervisor
 CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

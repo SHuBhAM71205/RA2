@@ -1,22 +1,29 @@
+import os
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings,SettingsConfigDict
 
-from pydantic import computed_field
+from pydantic import AliasChoices, Field, computed_field
+
+# Load root .env file
+dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.env"))
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path, override=True)
 
 class Settings(BaseSettings):
     # ---------CELERY--------------
     
-    A_CELERY_REDIS_LOGICAL_DB:int
-    A_CELERY_BROKER:str
-    A_CELERY_BROKER_HOST:str
-    A_CELERY_BROKER_PORT:str
+    A_CELERY_REDIS_LOGICAL_DB:int = 0
+    A_CELERY_BROKER:str = "redis"
+    A_CELERY_BROKER_HOST:str = Field(default="127.0.0.1", validation_alias=AliasChoices("A_CELERY_BROKER_HOST", "CELERY_BROKER_HOST"))
+    A_CELERY_BROKER_PORT:str = Field(default="6379", validation_alias=AliasChoices("A_CELERY_BROKER_PORT", "CELERY_BROKER_PORT"))
     
     @computed_field
     def CELERY_BROKER_URL(self) -> str:
         return f"{self.A_CELERY_BROKER}://{self.A_CELERY_BROKER_HOST}:{self.A_CELERY_BROKER_PORT}/{self.A_CELERY_REDIS_LOGICAL_DB}"
     
-    CELERY_BACKEND:str
-    CELERY_BACKEND_HOST:str
-    CELERY_BACKEND_PORT:str
+    CELERY_BACKEND:str = Field(default="redis", validation_alias=AliasChoices("A_CELERY_BACKEND", "CELERY_BACKEND"))
+    CELERY_BACKEND_HOST:str = Field(default="127.0.0.1", validation_alias=AliasChoices("A_CELERY_BACKEND_HOST", "CELERY_BACKEND_HOST"))
+    CELERY_BACKEND_PORT:str = Field(default="6379", validation_alias=AliasChoices("A_CELERY_BACKEND_PORT", "CELERY_BACKEND_PORT"))
 
     
     @computed_field

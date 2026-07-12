@@ -15,7 +15,7 @@ config = context.config
 
 config.set_main_option(
     "sqlalchemy.url",
-    settings.ALEMBIC_POSTGRES_URL
+    settings.ALEMBIC_POSTGRES_URL.replace("%", "%%")
 )
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

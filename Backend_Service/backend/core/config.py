@@ -1,4 +1,5 @@
 import os
+from urllib.parse import quote
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import computed_field
@@ -7,6 +8,21 @@ from pydantic import computed_field
 dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.env"))
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path, override=True)
+
+
+def _normalize_host(host: str | None, fallback: str = "127.0.0.1") -> str:
+    if host is None:
+        return fallback
+
+    normalized = str(host).strip().strip('"').strip("'")
+    if not normalized:
+        return fallback
+
+    if normalized.lower() in {"localhost", "0.0.0.0", "::1", "[::1]", "host.docker.internal"}:
+        return fallback
+
+    return normalized
+
 
 class Settings(BaseSettings):
     
@@ -18,13 +34,25 @@ class Settings(BaseSettings):
     PG_DB_HOST :str
     PG_DB_PORT :int
     
+    def _effective_db_host(self) -> str:
+        return _normalize_host(self.PG_DB_HOST)
+
+    def _encode_component(self, value: str) -> str:
+        return quote(str(value), safe="")
+
     @computed_field
     def POSTGRES_URL(self) -> str:
-        return f"postgresql+asyncpg://{self.PG_DB_USER}:{self.PG_DB_PASSWORD}@{self.PG_DB_HOST}:{self.PG_DB_PORT}/{self.PG_DB_NAME}"
+        return (
+            f"postgresql+asyncpg://{self._encode_component(self.PG_DB_USER)}:"
+            f"{self._encode_component(self.PG_DB_PASSWORD)}@{self._effective_db_host()}:{self.PG_DB_PORT}/{self.PG_DB_NAME}"
+        )
     
     @computed_field
     def ALEMBIC_POSTGRES_URL(self) -> str:
-        return f"postgresql+psycopg://{self.PG_DB_USER}:{self.PG_DB_PASSWORD}@{self.PG_DB_HOST}:{self.PG_DB_PORT}/{self.PG_DB_NAME}"
+        return (
+            f"postgresql+psycopg://{self._encode_component(self.PG_DB_USER)}:"
+            f"{self._encode_component(self.PG_DB_PASSWORD)}@{self._effective_db_host()}:{self.PG_DB_PORT}/{self.PG_DB_NAME}"
+        )
 
     # --- MINIO ---
     MINIO_CLIENT_PORT: int 
@@ -45,9 +73,12 @@ class Settings(BaseSettings):
     RESUME_EMBEDDING_DIMENSION: int = 384
     JOB_EMBEDDING_DIMENSION: int = 384
     
+    def _effective_qdrant_host(self) -> str:
+        return _normalize_host(self.QDRANT_HOST)
+
     @computed_field
     def QDRANT_URL(self) -> str:
-        return f"http://{self.QDRANT_HOST}:{self.QDRANT_PORT}"
+        return f"http://{self._effective_qdrant_host()}:{self.QDRANT_PORT}"
     
     # ---------REDIS(GENERAL)--------------
 
@@ -55,9 +86,12 @@ class Settings(BaseSettings):
     GEN_REDIS_PORT:int
     GEN_REDIS_LOGICAL_DB:int
     
+    def _effective_redis_host(self) -> str:
+        return _normalize_host(self.GEN_REDIS_HOST)
+
     @computed_field
     def GEN_REDIS_URL(self) -> str:
-        return f"redis://{self.GEN_REDIS_HOST}:{self.GEN_REDIS_PORT}/{self.GEN_REDIS_LOGICAL_DB}"
+        return f"redis://{self._effective_redis_host()}:{self.GEN_REDIS_PORT}/{self.GEN_REDIS_LOGICAL_DB}"
 
     # ---------CELERY--------------
     
@@ -66,17 +100,23 @@ class Settings(BaseSettings):
     A_CELERY_BROKER_HOST: str = "localhost"
     A_CELERY_BROKER_PORT: str = "6379"
     
+    def _effective_celery_broker_host(self) -> str:
+        return _normalize_host(self.A_CELERY_BROKER_HOST)
+
     @computed_field
     def A_CELERY_BROKER_URL(self) -> str:
-        return f"{self.A_CELERY_BROKER}://{self.A_CELERY_BROKER_HOST}:{self.A_CELERY_BROKER_PORT}/{self.A_CELERY_REDIS_LOGICAL_DB}"
+        return f"{self.A_CELERY_BROKER}://{self._effective_celery_broker_host()}:{self.A_CELERY_BROKER_PORT}/{self.A_CELERY_REDIS_LOGICAL_DB}"
     
     CELERY_BACKEND: str = "redis"
     CELERY_BACKEND_HOST: str = "localhost"
     CELERY_BACKEND_PORT: str = "6379"
     
+    def _effective_celery_backend_host(self) -> str:
+        return _normalize_host(self.CELERY_BACKEND_HOST)
+
     @computed_field
     def CELERY_BACKEND_URL(self) -> str:
-        return f"{self.CELERY_BACKEND}://{self.CELERY_BACKEND_HOST}:{self.CELERY_BACKEND_PORT}/{self.A_CELERY_REDIS_LOGICAL_DB}"
+        return f"{self.CELERY_BACKEND}://{self._effective_celery_backend_host()}:{self.CELERY_BACKEND_PORT}/{self.A_CELERY_REDIS_LOGICAL_DB}"
     
     
     # CRYPTOGRAPHIC
