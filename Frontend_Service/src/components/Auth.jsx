@@ -105,7 +105,7 @@ export default function Auth({ onAuthSuccess }) {
 
       {/* Card Auth Column */}
       <div className="w-full max-w-md bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-100/50 relative overflow-hidden shrink-0">
-        
+        <div className = "text-xl font-extrabold text-slate-900">Wait for some time as it will take a time to load for first time as the backend service get down if not used..</div>
         {/* Top subtle glow bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-indigo-700" />
 
