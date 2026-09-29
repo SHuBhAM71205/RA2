@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Mail, Lock, User, LogIn, UserPlus, ShieldAlert, BrainCircuit, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, LogIn, UserPlus, ShieldAlert, CircleCheck, Sparkles } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -26,11 +26,13 @@ export default function Auth({ onAuthSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setNotice('');
     setLoading(true);
 
     try {
@@ -61,7 +63,7 @@ export default function Auth({ onAuthSuccess }) {
         
         setIsLogin(true);
         setError('');
-        alert('Registration successful! Please sign in with your credentials.');
+        setNotice('Your account is ready. Sign in with your new credentials.');
       }
     } catch (err) {
       console.error(err);
@@ -122,11 +124,29 @@ export default function Auth({ onAuthSuccess }) {
         </div>
 
         {error && (
-          <div role="alert" aria-live="assertive" className="mb-5 flex items-start gap-3 bg-rose-50 border border-rose-200 border-l-4 border-l-rose-500 p-4 rounded-xl text-sm text-rose-900 shadow-sm">
-            <ShieldAlert className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" aria-hidden="true" />
-            <div className="min-w-0">
-              <p className="font-semibold">{isLogin ? 'Sign in failed' : 'We couldn’t create your account'}</p>
-              <p className="mt-1 leading-relaxed break-words text-rose-800">{error}</p>
+          <div role="alert" aria-live="assertive" className="mb-5 rounded-xl border border-rose-200 bg-rose-50 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-100">
+                <ShieldAlert className="h-5 w-5 text-rose-700" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-rose-900">{isLogin ? 'Unable to sign in' : 'Unable to create account'}</p>
+                <p className="mt-1 break-words text-sm leading-relaxed text-rose-800">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {notice && (
+          <div role="status" aria-live="polite" className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                <CircleCheck className="h-5 w-5 text-emerald-700" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <p className="font-semibold text-emerald-900">Registration complete</p>
+                <p className="mt-1 text-sm leading-relaxed text-emerald-800">{notice}</p>
+              </div>
             </div>
           </div>
         )}
@@ -218,6 +238,7 @@ export default function Auth({ onAuthSuccess }) {
             onClick={() => {
               setIsLogin(!isLogin);
               setError('');
+              setNotice('');
             }}
             className="text-xs text-indigo-600 hover:text-indigo-800 font-bold transition-colors focus:outline-none cursor-pointer"
           >
