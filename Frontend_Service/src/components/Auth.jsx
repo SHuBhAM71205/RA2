@@ -84,47 +84,50 @@ export default function Auth({ onAuthSuccess }) {
         </div>
         
         <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-          Audit credentials with high-fidelity <span className="bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent">AI Agents</span>
+          Find the right fit with <span className="bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent">smarter resume insights</span>
         </h1>
         
         <p className="text-slate-500 text-sm leading-relaxed">
-          Securely upload candidate resumes, parse structured JSON schemas, generate vector embeddings, and cross-reference roles with instant, interactive AI analysis.
+          Turn resumes into useful insights and match candidate skills to the roles that matter.
         </p>
 
         <div className="hidden lg:grid grid-cols-2 gap-4 pt-4">
           <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm space-y-1">
             <h3 className="font-bold text-xs text-slate-900">Embedding Engine</h3>
-            <p className="text-[11px] text-slate-450 leading-normal">High dimensional vector space representation.</p>
+            <p className="text-[11px] text-slate-500 leading-normal">Find candidates by skills and experience.</p>
           </div>
           <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm space-y-1">
             <h3 className="font-bold text-xs text-slate-900">Structured Insights</h3>
-            <p className="text-[11px] text-slate-455 leading-normal">Granular skill maps and performance logs.</p>
+            <p className="text-[11px] text-slate-500 leading-normal">Get clear, structured resume summaries.</p>
           </div>
         </div>
       </div>
 
       {/* Card Auth Column */}
-      <div className="w-full max-w-md bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-100/50 relative overflow-hidden shrink-0">
-        <div className = "text-xl font-extrabold text-slate-900">Wait for some time as it will take a time to load for first time as the backend service get down if not used..</div>
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/60 relative overflow-hidden shrink-0">
+        
         {/* Top subtle glow bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-indigo-700" />
 
         <div className="text-center mb-6">
-          <h2 className="text-xl font-extrabold text-slate-900">
-            {isLogin ? 'Sign In Workspace' : 'Create Account'}
+          <h2 className="text-2xl font-extrabold text-slate-900">
+            {isLogin ? 'Welcome back' : 'Create your account'}
           </h2>
-          <p className="text-xs text-slate-450 mt-1">
-            {isLogin 
-              ? 'Enter credentials to authorize API sessions.' 
-              : 'Register credentials to initiate sandbox evaluation.'
+          <p className="text-sm text-slate-500 mt-2">
+            {isLogin
+              ? 'Sign in to continue to your workspace.'
+              : 'Get started with your resume insights workspace.'
             }
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 flex items-start gap-2.5 bg-red-50 border border-red-200 p-3.5 rounded-xl text-xs text-red-750">
-            <ShieldAlert className="w-4 h-4 shrink-0 text-red-650 mt-0.5" />
-            <span>{error}</span>
+          <div role="alert" aria-live="assertive" className="mb-5 flex items-start gap-3 bg-rose-50 border border-rose-200 border-l-4 border-l-rose-500 p-4 rounded-xl text-sm text-rose-900 shadow-sm">
+            <ShieldAlert className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" aria-hidden="true" />
+            <div className="min-w-0">
+              <p className="font-semibold">{isLogin ? 'Sign in failed' : 'We couldn’t create your account'}</p>
+              <p className="mt-1 leading-relaxed break-words text-rose-800">{error}</p>
+            </div>
           </div>
         )}
 
@@ -191,19 +194,19 @@ export default function Auth({ onAuthSuccess }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl py-2.5 mt-4 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 cursor-pointer shadow-sm shadow-indigo-100"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl py-3 mt-4 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 cursor-pointer shadow-sm shadow-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
           >
             {loading ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : isLogin ? (
               <>
                 <LogIn className="w-3.5 h-3.5" />
-                <span className="text-xs">Access Workspace</span>
+                <span className="text-sm">Sign in</span>
               </>
             ) : (
               <>
                 <UserPlus className="w-3.5 h-3.5" />
-                <span className="text-xs">Create Account</span>
+                <span className="text-sm">Create account</span>
               </>
             )}
           </button>
