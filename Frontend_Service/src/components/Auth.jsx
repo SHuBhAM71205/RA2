@@ -123,6 +123,13 @@ export default function Auth({ onAuthSuccess }) {
           </p>
         </div>
 
+        {isLogin && (
+          <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
+            <p>First login may take a little longer while the backend starts after being idle.</p>
+          </div>
+        )}
+
         {error && (
           <div role="alert" aria-live="assertive" className="mb-5 rounded-xl border border-rose-200 bg-rose-50 p-4 shadow-sm">
             <div className="flex items-start gap-3">
