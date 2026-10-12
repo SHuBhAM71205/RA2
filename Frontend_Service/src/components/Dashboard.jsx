@@ -46,12 +46,10 @@ export default function Dashboard({ token, userId, onSelectResume }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = resp.data || [];
-      // Filter out failed resumes
-      const activeData = data.filter(r => r.status !== 'failed');
-      setResumes(activeData);
+      setResumes(data);
 
       // Proactively fetch analysis details for analyzed resumes to cache scores
-      const analyzed = activeData.filter(r => r.status === 'analyzed');
+      const analyzed = data.filter(r => r.status === 'analyzed');
       const analysisCache = { ...analyses };
       let hasNew = false;
 
