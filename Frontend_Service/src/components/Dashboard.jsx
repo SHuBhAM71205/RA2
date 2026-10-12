@@ -103,25 +103,18 @@ export default function Dashboard({ token, userId, onSelectResume }) {
               headers: { Authorization: `Bearer ${token}` }
             });
             if (resp.data.status !== resume.status) {
-              if (resp.data.status === 'failed') {
-                // Remove failed resume from the dashboard lists
-                copy.splice(i, 1);
-                i--;
-                updated = true;
-              } else {
-                copy[i].status = resp.data.status;
-                updated = true;
+              copy[i].status = resp.data.status;
+              updated = true;
 
-                // If status transitioned to analyzed, load analysis details immediately
-                if (resp.data.status === 'analyzed') {
-                  try {
-                    const analResp = await axios.get(`${API_URL}/resume/analysis/${resume.id}`, {
-                      headers: { Authorization: `Bearer ${token}` }
-                    });
-                    analysisCache[resume.id] = analResp.data;
-                  } catch (err) {
-                    console.error('Failed to load analysis on transition:', err);
-                  }
+              // If status transitioned to analyzed, load analysis details immediately
+              if (resp.data.status === 'analyzed') {
+                try {
+                  const analResp = await axios.get(`${API_URL}/resume/analysis/${resume.id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  });
+                  analysisCache[resume.id] = analResp.data;
+                } catch (err) {
+                  console.error('Failed to load analysis on transition:', err);
                 }
               }
             }
